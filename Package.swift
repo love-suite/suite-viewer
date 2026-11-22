@@ -6,7 +6,8 @@ import PackageDescription
 let organization = "love-suite"
 
 // Viewer: the picture and PDF viewer of the suite, as an app of its own. Explorer hands it pictures and
-// PDFs; ViewerCore (no UI, unit-tested) knows the pictures of a folder in Explorer's order.
+// PDFs; ViewerCore (no UI, unit-tested) knows the pictures of a folder in Explorer's order;
+// PictureEditCore (no UI, unit-tested) keeps the editable versions of pictures and reads their text.
 let package = Package(
     name: "Viewer",
     defaultLocalization: "en",
@@ -19,9 +20,11 @@ let package = Package(
         .target(name: "ViewerCore", dependencies: [.product(name: "SuiteCore", package: "suite-core"), .product(name: "SuiteFilesCore", package: "suite-files")]),
         .testTarget(name: "ViewerCoreTests",
                     dependencies: ["ViewerCore", .product(name: "SuiteCore", package: "suite-core"), .product(name: "SuiteFilesCore", package: "suite-files")]),
+        .target(name: "PictureEditCore"),
+        .testTarget(name: "PictureEditCoreTests", dependencies: ["PictureEditCore"]),
         .target(
             name: "ViewerUI",
-            dependencies: ["ViewerCore", .product(name: "SuiteCore", package: "suite-core"), .product(name: "SuiteFilesCore", package: "suite-files"), .product(name: "SuiteFilesUI", package: "suite-files")],
+            dependencies: ["ViewerCore", "PictureEditCore", .product(name: "SuiteCore", package: "suite-core"), .product(name: "SuiteFilesCore", package: "suite-files"), .product(name: "SuiteFilesUI", package: "suite-files")],
             resources: [.process("Resources")],
             linkerSettings: [.linkedFramework("Quartz")]
         ),

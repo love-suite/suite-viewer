@@ -36,6 +36,11 @@ final class ViewerDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 
+    /// Changes being edited are written into the picture first.
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        PictureViewer.prepareToQuit() ? .terminateNow : .terminateCancel
+    }
+
     @objc func openDocument(_ sender: Any?) {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.image, .pdf]
