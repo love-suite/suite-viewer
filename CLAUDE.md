@@ -9,7 +9,10 @@ off in Explorer's settings; without Viewer they open in the system's app).
 ```
 ViewerCore (library, no UI, unit-tested) the pictures of a folder in Explorer's order (SuiteFilesCore's
            FolderViewStore and FileSorter), the sequence the arrows go through
-ViewerUI   (library, AppKit) the picture and PDF viewer windows and Viewer's menu
+PictureEditCore (library, no UI, unit-tested) editable versions of pictures (shapes, layers, light and
+           colour, crop, history), kept in ~/Library/Application Support/Explorer/Viewer/Edits apart from
+           the picture, which stays a plain file; rendering; text recognition (Vision)
+ViewerUI   (library, AppKit) the picture and PDF viewer windows, the editing strip and panels, Viewer's menu
 Viewer     (Viewer.app)
 ```
 
@@ -26,10 +29,9 @@ Restore read) and Finder's sounds.
 
 ## Work to do
 
-- `feat/viewer-edit` (moved here with its history, written before the viewer left `ExplorerUI`, so its
-  files are still under `Sources/ExplorerUI` and it doesn't build here as it is): text recognition, editing
-  that stays editable (history, shapes moved again, simple layers, kept apart from the picture, which stays
-  a plain file), rotate and fit below the toolbar. Merging it is real work. Then slideshow, information,
+- `feat/viewer-edit-ported` (`feat/viewer-edit` moved onto main), to be tried in the app and merged, after
+  which `feat/viewer-edit` can go: text recognition, selection and search, editing that stays editable,
+  rotate and fit below the toolbar. Then slideshow, information,
   videos; PDFs are partly done.
 
 ## Building and running
