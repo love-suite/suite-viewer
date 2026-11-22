@@ -29,19 +29,19 @@ enum EditTool: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .select: "Select"
-        case .pen: "Pen"
-        case .highlighter: "Highlighter"
-        case .rectangle: "Rectangle"
-        case .ellipse: "Ellipse"
-        case .line: "Line"
-        case .arrow: "Arrow"
-        case .text: "Text"
-        case .step: "Numbered Step"
-        case .blur: "Blur"
-        case .pixelate: "Pixelate"
-        case .redact: "Hide"
-        case .crop: "Crop and Rotate"
+        case .select: UIL("Select")
+        case .pen: UIL("Pen")
+        case .highlighter: UIL("Highlighter")
+        case .rectangle: UIL("Rectangle")
+        case .ellipse: UIL("Ellipse")
+        case .line: UIL("Line")
+        case .arrow: UIL("Arrow")
+        case .text: UIL("Text")
+        case .step: UIL("Numbered Step")
+        case .blur: UIL("Blur")
+        case .pixelate: UIL("Pixelate")
+        case .redact: UIL("Hide")
+        case .crop: UIL("Crop and Rotate")
         }
     }
 
@@ -93,9 +93,9 @@ enum CropAspect: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .free: "Free"
-        case .original: "Original"
-        case .square: "Square"
+        case .free: UIL("Free")
+        case .original: UIL("Original")
+        case .square: UIL("Square")
         case .fourThree: "4:3"
         case .threeTwo: "3:2"
         case .sixteenNine: "16:9"
@@ -146,6 +146,7 @@ final class PictureEditor: ObservableObject {
     enum Panel: String, CaseIterable, Identifiable {
         case adjust = "Adjust", layers = "Layers", history = "History"
         var id: String { rawValue }
+        var title: String { UIL(rawValue) }
     }
 
     private let store: EditStore
@@ -507,8 +508,9 @@ enum ViewerError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .cantWrite(let ext): "Pictures of this type (\(ext.uppercased())) can't be saved in place. Use Save as Copy."
-        case .cantRender: "The picture couldn't be drawn."
+        case .cantWrite(let ext):
+            String(format: UIL("Pictures of this type (%@) can't be saved in place. Use Save as Copy."), ext.uppercased())
+        case .cantRender: UIL("The picture couldn't be drawn.")
         }
     }
 }

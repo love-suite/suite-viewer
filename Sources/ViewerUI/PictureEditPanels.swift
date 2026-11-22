@@ -31,13 +31,13 @@ struct EditorToolStrip: View {
                     .buttonStyle(.plain)
                     .background(RoundedRectangle(cornerRadius: 5)
                         .fill(editor.tool == tool ? Color.accentColor.opacity(0.25) : .clear))
-                    .help("\(tool.title) (\(String(tool.key).uppercased()))")
+                    .help("\(tool.title) (\(String(tool.key).uppercased()))" as String)
                 }
                 Button(action: actions.insertPicture) {
                     Image(systemName: "photo.badge.plus").frame(width: 26, height: 22).contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .help("Insert Picture")
+                .help(UIL("Insert Picture"))
             }
             Divider().frame(height: 20)
             if editor.tool == .crop {
@@ -45,16 +45,16 @@ struct EditorToolStrip: View {
             } else if let style = editor.shownStyle, let kind = editor.shownKind {
                 styleOptions(style, kind)
             } else {
-                Text("Pick a tool, or click a shape to change it.")
+                Text(UIL("Pick a tool, or click a shape to change it."))
                     .foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
             Button { editor.undo() } label: { Image(systemName: "arrow.uturn.backward") }
                 .disabled(!editor.history.canUndo && editor.document == editor.history.current)
-                .help("Undo")
+                .help(UIL("Undo"))
             Button { editor.redo() } label: { Image(systemName: "arrow.uturn.forward") }
                 .disabled(!editor.history.canRedo)
-                .help("Redo")
+                .help(UIL("Redo"))
         }
         .controlSize(.small)
         .padding(.horizontal, 10)
@@ -64,7 +64,7 @@ struct EditorToolStrip: View {
 
     private var cropOptions: some View {
         HStack(spacing: 8) {
-            Picker("Proportions", selection: Binding(get: { editor.cropAspect },
+            Picker(UIL("Proportions"), selection: Binding(get: { editor.cropAspect },
                                                     set: { editor.cropAspect = $0; actions.cropAspectChanged() })) {
                 ForEach(CropAspect.allCases) { Text($0.title).tag($0) }
             }
@@ -73,18 +73,18 @@ struct EditorToolStrip: View {
             Button { editor.cropPortrait.toggle(); actions.cropAspectChanged() } label: {
                 Image(systemName: editor.cropPortrait ? "rectangle.portrait" : "rectangle")
             }
-            .help("Portrait or Landscape")
+            .help(UIL("Portrait or Landscape"))
             .disabled(editor.cropAspect == .free || editor.cropAspect == .original || editor.cropAspect == .square)
             Divider().frame(height: 20)
-            Button { actions.rotate(false) } label: { Image(systemName: "rotate.left") }.help("Rotate Left")
-            Button { actions.rotate(true) } label: { Image(systemName: "rotate.right") }.help("Rotate Right")
+            Button { actions.rotate(false) } label: { Image(systemName: "rotate.left") }.help(UIL("Rotate Left"))
+            Button { actions.rotate(true) } label: { Image(systemName: "rotate.right") }.help(UIL("Rotate Right"))
             Button { actions.flip(true) } label: { Image(systemName: "arrow.left.and.right.righttriangle.left.righttriangle.right") }
-                .help("Flip Horizontal")
+                .help(UIL("Flip Horizontal"))
             Button { actions.flip(false) } label: { Image(systemName: "arrow.up.and.down.righttriangle.up.righttriangle.down") }
-                .help("Flip Vertical")
+                .help(UIL("Flip Vertical"))
             Divider().frame(height: 20)
-            Button("Reset", action: actions.resetCrop)
-            Button("Crop", action: actions.applyCrop).keyboardShortcut(.defaultAction)
+            Button(UIL("Reset"), action: actions.resetCrop)
+            Button(UIL("Crop"), action: actions.applyCrop).keyboardShortcut(.defaultAction)
         }
     }
 
@@ -105,7 +105,7 @@ struct EditorToolStrip: View {
                         }
                         .buttonStyle(.plain)
                     }
-                    ColorPicker("Colour", selection: Binding(
+                    ColorPicker(UIL("Colour"), selection: Binding(
                         get: { style.stroke.cgColor },
                         set: { color in editor.changeStyle { $0.stroke = RGBA(cgColor: color) } }))
                         .labelsHidden()
@@ -117,11 +117,11 @@ struct EditorToolStrip: View {
                         Button("\(Int(level))") { editor.changeStyle { $0.lineWidth = level * unit * (kind == .highlighter ? 4 : 1) } }
                     }
                 } label: {
-                    Label("Width \(Int((style.lineWidth / unit / (kind == .highlighter ? 4 : 1)).rounded()))",
+                    Label(String(format: UIL("Width %d"), Int((style.lineWidth / unit / (kind == .highlighter ? 4 : 1)).rounded())),
                           systemImage: "lineweight")
                 }
                 .fixedSize()
-                .help("Line Width")
+                .help(UIL("Line Width"))
             }
             if kind == .text || kind == .step {
                 Menu {
@@ -129,23 +129,23 @@ struct EditorToolStrip: View {
                         Button("\(Int(size))") { editor.changeStyle { $0.fontSize = size * unit } }
                     }
                 } label: {
-                    Label("Size \(Int((style.fontSize / unit).rounded()))", systemImage: "textformat.size")
+                    Label(String(format: UIL("Size %d"), Int((style.fontSize / unit).rounded())), systemImage: "textformat.size")
                 }
                 .fixedSize()
-                .help("Text Size")
+                .help(UIL("Text Size"))
             }
             if kind == .rectangle || kind == .ellipse || kind == .text {
                 Menu {
-                    Button("No Fill") { editor.changeStyle { $0.fill = nil } }
-                    Button("Same Colour, Lighter") { editor.changeStyle { $0.fill = $0.stroke.withAlpha(0.3) } }
-                    Button("Same Colour") { editor.changeStyle { $0.fill = $0.stroke } }
-                    Button("White") { editor.changeStyle { $0.fill = .white } }
-                    Button("Black") { editor.changeStyle { $0.fill = .black } }
+                    Button(UIL("No Fill")) { editor.changeStyle { $0.fill = nil } }
+                    Button(UIL("Same Colour, Lighter")) { editor.changeStyle { $0.fill = $0.stroke.withAlpha(0.3) } }
+                    Button(UIL("Same Colour")) { editor.changeStyle { $0.fill = $0.stroke } }
+                    Button(UIL("White")) { editor.changeStyle { $0.fill = .white } }
+                    Button(UIL("Black")) { editor.changeStyle { $0.fill = .black } }
                 } label: {
-                    Label("Fill", systemImage: style.fill == nil ? "square.dashed" : "square.fill")
+                    Label(UIL("Fill"), systemImage: style.fill == nil ? "square.dashed" : "square.fill")
                 }
                 .fixedSize()
-                .help("Fill")
+                .help(UIL("Fill"))
             }
             if kind == .rectangle {
                 Toggle(isOn: Binding(get: { style.cornerRadius > 0 },
@@ -153,28 +153,28 @@ struct EditorToolStrip: View {
                     Image(systemName: "app")
                 }
                 .toggleStyle(.button)
-                .help("Rounded Corners")
+                .help(UIL("Rounded Corners"))
             }
             if ([.rectangle, .ellipse, .line, .arrow] as [PictureEditCore.Shape.Kind]).contains(kind) {
                 Toggle(isOn: Binding(get: { style.dashed }, set: { on in editor.changeStyle { $0.dashed = on } })) {
                     Image(systemName: "line.3.horizontal.decrease")
                 }
                 .toggleStyle(.button)
-                .help("Dashed")
+                .help(UIL("Dashed"))
             }
             if kind == .arrow {
                 Toggle(isOn: Binding(get: { style.doubleHeaded }, set: { on in editor.changeStyle { $0.doubleHeaded = on } })) {
                     Image(systemName: "arrow.left.and.right")
                 }
                 .toggleStyle(.button)
-                .help("Arrow at Both Ends")
+                .help(UIL("Arrow at Both Ends"))
             }
             if !kind.isMask && kind != .highlighter {
                 Toggle(isOn: Binding(get: { style.shadow }, set: { on in editor.changeStyle { $0.shadow = on } })) {
                     Image(systemName: "shadow")
                 }
                 .toggleStyle(.button)
-                .help("Shadow")
+                .help(UIL("Shadow"))
             }
             if kind != .blur && kind != .pixelate {
                 Menu {
@@ -185,7 +185,7 @@ struct EditorToolStrip: View {
                     Label("\(Int((style.opacity * 100).rounded())) %", systemImage: "circle.lefthalf.filled")
                 }
                 .fixedSize()
-                .help("Opacity")
+                .help(UIL("Opacity"))
             }
         }
     }
@@ -207,8 +207,8 @@ struct EditorSidebar: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Picker("Panel", selection: $editor.panel) {
-                ForEach(PictureEditor.Panel.allCases) { Text($0.rawValue).tag($0) }
+            Picker(UIL("Panel"), selection: $editor.panel) {
+                ForEach(PictureEditor.Panel.allCases) { Text($0.title).tag($0) }
             }
             .pickerStyle(.segmented)
             .labelsHidden()
@@ -239,13 +239,13 @@ private struct AdjustPanel: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                Toggle("Auto Enhance", isOn: Binding(
+                Toggle(UIL("Auto Enhance"), isOn: Binding(
                     get: { editor.document.adjustments.autoEnhance },
                     set: { on in editor.apply("Auto Enhance") { $0.adjustments.autoEnhance = on } }))
                 ForEach(sliders, id: \.0) { name, path, range in
                     VStack(alignment: .leading, spacing: 2) {
                         HStack {
-                            Text(name)
+                            Text(UIL(name))
                             Spacer()
                             Text("\(Int((editor.document.adjustments[keyPath: path] * 100).rounded()))")
                                 .monospacedDigit()
@@ -256,17 +256,17 @@ private struct AdjustPanel: View {
                                in: range) { editing in if !editing { editor.commit(name) } }
                     }
                     .onTapGesture(count: 2) { editor.apply(name) { $0.adjustments[keyPath: path] = 0 } }
-                    .help("Double-click to reset")
+                    .help(UIL("Double-click to reset"))
                 }
-                Text("Filter").font(.headline)
+                Text(UIL("Filter")).font(.headline)
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 70))], spacing: 6) {
                     ForEach(Adjustments.Filter.allCases, id: \.self) { filter in
-                        Button(filter.title) { editor.apply("Filter") { $0.adjustments.filter = filter } }
+                        Button(UIL(filter.title)) { editor.apply("Filter") { $0.adjustments.filter = filter } }
                             .buttonStyle(.bordered)
                             .tint(editor.document.adjustments.filter == filter ? .accentColor : nil)
                     }
                 }
-                Button("Reset Light and Colour") { editor.apply("Reset Light and Colour") { $0.adjustments = Adjustments() } }
+                Button(UIL("Reset Light and Colour")) { editor.apply("Reset Light and Colour") { $0.adjustments = Adjustments() } }
                     .disabled(editor.document.adjustments.isIdentity)
             }
             .controlSize(.small)
@@ -299,27 +299,27 @@ private struct LayersPanel: View {
                 Divider()
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("Opacity")
+                        Text(UIL("Opacity"))
                         Slider(value: Binding(get: { layer.opacity },
                                               set: { value in editor.preview { $0.layers[index].opacity = value } }),
                                in: 0...1) { editing in if !editing { editor.commit("Layer Opacity") } }
                         Text("\(Int((layer.opacity * 100).rounded())) %").monospacedDigit().frame(width: 40, alignment: .trailing)
                     }
-                    Picker("Blending", selection: Binding(get: { layer.blend },
+                    Picker(UIL("Blending"), selection: Binding(get: { layer.blend },
                                                          set: { blend in editor.apply("Layer Blending") { $0.layers[index].blend = blend } })) {
-                        ForEach(BlendMode.allCases, id: \.self) { Text($0.title).tag($0) }
+                        ForEach(BlendMode.allCases, id: \.self) { Text(UIL($0.title)).tag($0) }
                     }
                     HStack {
-                        Button { editor.addLayer() } label: { Image(systemName: "plus") }.help("New Layer")
-                        Button { editor.removeLayer(layer.id) } label: { Image(systemName: "minus") }.help("Delete Layer")
+                        Button { editor.addLayer() } label: { Image(systemName: "plus") }.help(UIL("New Layer"))
+                        Button { editor.removeLayer(layer.id) } label: { Image(systemName: "minus") }.help(UIL("Delete Layer"))
                         Spacer()
                         Button { editor.moveLayer(layer.id, by: 1) } label: { Image(systemName: "arrow.up") }
-                            .disabled(index == editor.document.layers.count - 1).help("Move Up")
+                            .disabled(index == editor.document.layers.count - 1).help(UIL("Move Up"))
                         Button { editor.moveLayer(layer.id, by: -1) } label: { Image(systemName: "arrow.down") }
-                            .disabled(index == 0).help("Move Down")
-                        Button("Merge Down") { editor.mergeDown(layer.id) }.disabled(index == 0)
+                            .disabled(index == 0).help(UIL("Move Down"))
+                        Button(UIL("Merge Down")) { editor.mergeDown(layer.id) }.disabled(index == 0)
                     }
-                    Text("New shapes go on the selected layer. Selected shapes can be moved to another layer from their right-click menu.")
+                    Text(UIL("New shapes go on the selected layer. Selected shapes can be moved to another layer from their right-click menu."))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -347,18 +347,19 @@ private struct LayerRow: View {
                     .foregroundStyle(layer.isVisible ? .primary : .secondary)
             }
             .buttonStyle(.plain)
-            TextField("Name", text: $name)
+            TextField(UIL("Name"), text: $name)
                 .textFieldStyle(.plain)
                 .onSubmit {
                     let trimmed = name.trimmingCharacters(in: .whitespaces)
-                    guard !trimmed.isEmpty, let index = editor.document.layerIndex(layer.id) else { name = layer.name; return }
+                    guard !trimmed.isEmpty, trimmed != layer.title,
+                          let index = editor.document.layerIndex(layer.id) else { name = layer.title; return }
                     editor.apply("Rename Layer") { $0.layers[index].name = trimmed }
                 }
             Spacer()
             Text("\(layer.shapes.count)").foregroundStyle(.secondary).monospacedDigit()
         }
-        .onAppear { name = layer.name }
-        .onChange(of: layer.name) { name = $0 }
+        .onAppear { name = layer.title }
+        .onChange(of: layer.name) { _ in name = layer.title }
     }
 }
 
@@ -372,7 +373,7 @@ private struct HistoryPanel: View {
                 ForEach(Array(editor.history.steps.enumerated()), id: \.offset) { index, step in
                     Button { editor.jump(to: index) } label: {
                         HStack {
-                            Text(step.name)
+                            Text(UIL(step.name))
                                 .fontWeight(index == editor.history.index ? .semibold : .regular)
                                 .foregroundStyle(index > editor.history.index ? .secondary : .primary)
                             Spacer()
@@ -392,5 +393,15 @@ private struct HistoryPanel: View {
             .onAppear { proxy.scrollTo(editor.history.index) }
             .onChange(of: editor.history.index) { proxy.scrollTo($0) }
         }
+    }
+}
+
+extension Layer {
+    /// The layer's name as shown: the names Viewer gives ("Layer 2") in the user's language, the
+    /// names the user typed as they are.
+    var title: String {
+        let prefix = "Layer "
+        guard name.hasPrefix(prefix), let number = Int(name.dropFirst(prefix.count)) else { return name }
+        return String(format: UIL("Layer %d"), number)
     }
 }

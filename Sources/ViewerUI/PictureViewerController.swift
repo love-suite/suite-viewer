@@ -163,7 +163,7 @@ final class PictureViewerController: NSWindowController, NSWindowDelegate, NSToo
         } else {
             currentImage = nil
             canvas.showPicture(nil, pixelSize: .zero)
-            message.stringValue = "Can't open “\(url.lastPathComponent)”."
+            message.stringValue = String(format: UIL("Can't open \"%@\"."), url.lastPathComponent)
             message.isHidden = false
         }
     }
@@ -171,17 +171,17 @@ final class PictureViewerController: NSWindowController, NSWindowDelegate, NSToo
     private func updateTitle() {
         guard let window, let url = sequence.current else { return }
         window.title = url.lastPathComponent
-        var subtitle = sequence.urls.count > 1 ? sequence.position : ""
+        var subtitle = sequence.urls.count > 1 ? "\(sequence.index + 1) \(UIL("of")) \(sequence.urls.count)" : ""
         if let editor {
-            let state = editor.hasUnsavedChanges ? "Editing, saved when you click Done" : "Editing"
+            let state = editor.hasUnsavedChanges ? UIL("Editing, saved when you click Done") : UIL("Editing")
             subtitle = subtitle.isEmpty ? state : subtitle + " · " + state
         }
         window.subtitle = subtitle
         window.isDocumentEdited = editor?.hasUnsavedChanges ?? false
         if let item = window.toolbar?.items.first(where: { $0.itemIdentifier.rawValue == "edit" }) {
             let editing = editor != nil
-            item.label = editing ? "Done" : "Edit"
-            item.toolTip = editing ? "Done: save the changes into the picture" : "Edit and Mark Up (E)"
+            item.label = editing ? UIL("Done") : UIL("Edit (button)", value: "Edit")
+            item.toolTip = editing ? UIL("Done: save the changes into the picture") : UIL("Edit and Mark Up (E)")
             item.image = NSImage(systemSymbolName: editing ? "checkmark.circle.fill" : "pencil.tip.crop.circle",
                                  accessibilityDescription: item.label)
         }
@@ -256,7 +256,7 @@ final class PictureViewerController: NSWindowController, NSWindowDelegate, NSToo
     @objc private func toggleText() {
         canvas.showsAllText.toggle()
         if canvas.showsAllText && canvas.recognized.isEmpty && editor == nil {
-            message.stringValue = "No text found in this picture."
+            message.stringValue = UIL("No text found in this picture.")
             message.isHidden = !canvas.recognized.isEmpty
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
                 if self?.currentImage != nil { self?.message.isHidden = true }
@@ -283,6 +283,9 @@ final class PictureViewerController: NSWindowController, NSWindowDelegate, NSToo
         guard editor == nil else { return }
         window?.makeFirstResponder(searchField)
     }
+
+    /// Edit › Find (Cmd+F), shared with the PDF viewer, finds the text in the picture here.
+    @objc func find(_ sender: Any?) { findInPicture(sender) }
 
     func controlTextDidChange(_ notification: Notification) { updateSearch() }
 
@@ -330,7 +333,7 @@ final class PictureViewerController: NSWindowController, NSWindowDelegate, NSToo
         if let editor { return editor }
         guard let url = sequence.current else { return nil }
         guard let editor = PictureEditor(url: url) else {
-            alert("“\(url.lastPathComponent)” can't be edited.", "The picture couldn't be read.")
+            alert(String(format: UIL("\"%@\" can't be edited."), url.lastPathComponent), UIL("The picture couldn't be read."))
             return nil
         }
         self.editor = editor
@@ -369,12 +372,12 @@ final class PictureViewerController: NSWindowController, NSWindowDelegate, NSToo
             } catch {
                 editor.saveEdits()
                 let alert = NSAlert()
-                alert.messageText = "The changes couldn't be saved into “\(editor.url.lastPathComponent)”."
+                alert.messageText = String(format: UIL("The changes couldn't be saved into \"%@\"."), editor.url.lastPathComponent)
                 alert.informativeText = error.localizedDescription
-                    + "\n\nThey are kept in Viewer: they come back the next time you edit this picture."
-                alert.addButton(withTitle: "Save as Copy")
-                alert.addButton(withTitle: "Keep Editing")
-                alert.addButton(withTitle: "Close Anyway")
+                    + "\n\n" + UIL("They are kept in Viewer: they come back the next time you edit this picture.")
+                alert.addButton(withTitle: UIL("Save as Copy"))
+                alert.addButton(withTitle: UIL("Keep Editing"))
+                alert.addButton(withTitle: UIL("Close Anyway"))
                 switch alert.runModal() {
                 case .alertFirstButtonReturn:
                     guard saveCopy() else { return false }
@@ -407,7 +410,7 @@ final class PictureViewerController: NSWindowController, NSWindowDelegate, NSToo
             try editor.saveToFile()
         } catch {
             editor.saveEdits()
-            alert("The picture couldn't be saved.", error.localizedDescription)
+            alert(UIL("The picture couldn't be saved."), error.localizedDescription)
         }
         textCache[url] = nil
         showCurrent()
@@ -488,7 +491,7 @@ final class PictureViewerController: NSWindowController, NSWindowDelegate, NSToo
         guard let window else { return }
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.image]
-        panel.message = "Choose a picture to place on this one."
+        panel.message = UIL("Choose a picture to place on this one.")
         panel.beginSheetModal(for: window) { [weak self] response in
             guard response == .OK, let url = panel.url, let image = NSImage(contentsOf: url),
                   let self, let editor = self.startEditing() else { return }
@@ -503,7 +506,7 @@ final class PictureViewerController: NSWindowController, NSWindowDelegate, NSToo
         do {
             try editor.saveToFile()
         } catch {
-            alert("The changes couldn't be saved into the picture.", error.localizedDescription)
+            alert(UIL("The changes couldn't be saved into the picture."), error.localizedDescription)
         }
         updateTitle()
     }
@@ -525,12 +528,12 @@ final class PictureViewerController: NSWindowController, NSWindowDelegate, NSToo
         let popup = NSPopUpButton()
         popup.addItems(withTitles: types.map(\.0))
         popup.selectItem(at: chosen)
-        let label = NSTextField(labelWithString: "Format:")
+        let label = NSTextField(labelWithString: UIL("Format:"))
         let accessory = NSStackView(views: [label, popup])
         accessory.edgeInsets = NSEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
         panel.accessoryView = accessory
         panel.allowedContentTypes = [types[chosen].1]
-        panel.nameFieldStringValue = url.deletingPathExtension().lastPathComponent + " (edited)"
+        panel.nameFieldStringValue = url.deletingPathExtension().lastPathComponent + " " + UIL("(edited)")
         panel.directoryURL = url.deletingLastPathComponent()
         let handler = PopupHandler { index in
             chosen = index
@@ -543,7 +546,7 @@ final class PictureViewerController: NSWindowController, NSWindowDelegate, NSToo
             try editor.saveCopy(to: destination, as: types[chosen].1)
             return true
         } catch {
-            alert("The copy couldn't be saved.", error.localizedDescription)
+            alert(UIL("The copy couldn't be saved."), error.localizedDescription)
             return false
         }
     }
@@ -653,7 +656,7 @@ final class PictureViewerController: NSWindowController, NSWindowDelegate, NSToo
         let selection = editor?.selection ?? []
         switch item.action {
         case #selector(toggleEditing(_:)):
-            item.title = editor == nil ? "Edit and Mark Up" : "Done Editing"
+            item.title = editor == nil ? UIL("Edit and Mark Up") : UIL("Done Editing")
             return hasPicture
         case #selector(saveDocument(_:)): return editor?.hasUnsavedChanges == true
         case #selector(saveDocumentAs(_:)), #selector(rotateLeft(_:)), #selector(rotateRight(_:)),
@@ -667,10 +670,10 @@ final class PictureViewerController: NSWindowController, NSWindowDelegate, NSToo
             guard let url = sequence.current else { return false }
             return PictureEditor.defaultStore.record(for: url) != nil
         case #selector(undo(_:)):
-            item.title = editor?.history.undoName.map { "Undo \($0)" } ?? "Undo"
+            item.title = editor?.history.undoName.map { String(format: UIL("Undo %@"), UIL($0)) } ?? UIL("Undo")
             return editor?.history.canUndo == true || (editor.map { $0.document != $0.history.current } ?? false)
         case #selector(redo(_:)):
-            item.title = editor?.history.redoName.map { "Redo \($0)" } ?? "Redo"
+            item.title = editor?.history.redoName.map { String(format: UIL("Redo %@"), UIL($0)) } ?? UIL("Redo")
             return editor?.history.canRedo == true
         case #selector(copy(_:)): return hasPicture
         case #selector(cut(_:)), #selector(delete(_:)), #selector(duplicate(_:)), #selector(bringToFront(_:)),
@@ -684,7 +687,7 @@ final class PictureViewerController: NSWindowController, NSWindowDelegate, NSToo
         case #selector(toggleText):
             item.state = canvas.showsAllText ? .on : .off
             return editor == nil && hasPicture
-        case #selector(findInPicture(_:)): return editor == nil && hasPicture
+        case #selector(findInPicture(_:)), #selector(find(_:)): return editor == nil && hasPicture
         case #selector(trash), #selector(openInPreview), #selector(zoomIn), #selector(zoomOut), #selector(fit),
              #selector(actualSize):
             return hasPicture
@@ -702,47 +705,47 @@ final class PictureViewerController: NSWindowController, NSWindowDelegate, NSToo
         if let editor {
             if !editor.selection.isEmpty {
                 if editor.selection.count == 1, let id = editor.selection.first, editor.document.shape(id)?.kind == .text {
-                    add("Edit Text", #selector(editText(_:)))
+                    add(UIL("Edit Text"), #selector(editText(_:)))
                     menu.addItem(.separator())
                 }
-                add("Cut", #selector(cut(_:)))
-                add("Copy", #selector(copy(_:)))
-                add("Duplicate", #selector(duplicate(_:)))
-                add("Delete", #selector(delete(_:)))
+                add(UIL("Cut"), #selector(cut(_:)))
+                add(UIL("Copy"), #selector(copy(_:)))
+                add(UIL("Duplicate"), #selector(duplicate(_:)))
+                add(UIL("Delete"), #selector(delete(_:)))
                 menu.addItem(.separator())
-                add("Bring to Front", #selector(bringToFront(_:)))
-                add("Bring Forward", #selector(bringForward(_:)))
-                add("Send Backward", #selector(sendBackward(_:)))
-                add("Send to Back", #selector(sendToBack(_:)))
+                add(UIL("Bring to Front"), #selector(bringToFront(_:)))
+                add(UIL("Bring Forward"), #selector(bringForward(_:)))
+                add(UIL("Send Backward"), #selector(sendBackward(_:)))
+                add(UIL("Send to Back"), #selector(sendToBack(_:)))
                 let layers = editor.document.layers.reversed().filter { layer in
                     !editor.selection.allSatisfy { editor.document.locate($0).map { editor.document.layers[$0.layer].id } == layer.id }
                 }
                 if !layers.isEmpty {
                     let submenu = NSMenu()
                     for layer in layers {
-                        let item = submenu.addItem(withTitle: layer.name, action: #selector(moveSelectionToLayer(_:)), keyEquivalent: "")
+                        let item = submenu.addItem(withTitle: layer.title, action: #selector(moveSelectionToLayer(_:)), keyEquivalent: "")
                         item.target = self
                         item.representedObject = layer.id
                     }
-                    menu.addItem(withTitle: "Move to Layer", action: nil, keyEquivalent: "").submenu = submenu
+                    menu.addItem(withTitle: UIL("Move to Layer"), action: nil, keyEquivalent: "").submenu = submenu
                 }
             } else {
-                add("Paste", #selector(paste(_:)))
-                add("Select All", #selector(selectAll(_:)))
-                add("Insert Picture", #selector(insertPicture(_:)))
+                add(UIL("Paste"), #selector(paste(_:)))
+                add(UIL("Select All"), #selector(selectAll(_:)))
+                add(UIL("Insert Picture"), #selector(insertPicture(_:)))
             }
             return menu
         }
-        if canvas.textSelection != nil { add("Copy Text", #selector(copy(_:))) }
+        if canvas.textSelection != nil { add(UIL("Copy Text"), #selector(copy(_:))) }
         if !canvas.recognized.isEmpty {
-            add("Copy All Text", #selector(copyAllText(_:)))
-            add("Select All Text", #selector(selectAllText(_:)))
+            add(UIL("Copy All Text"), #selector(copyAllText(_:)))
+            add(UIL("Select All Text"), #selector(selectAllText(_:)))
         }
         if !menu.items.isEmpty { menu.addItem(.separator()) }
-        add("Copy Picture", #selector(copyPicture(_:)))
-        add("Edit and Mark Up", #selector(toggleEditing(_:)))
-        add("Rotate Left", #selector(rotateLeft(_:)))
-        add("Rotate Right", #selector(rotateRight(_:)))
+        add(UIL("Copy Picture"), #selector(copyPicture(_:)))
+        add(UIL("Edit and Mark Up"), #selector(toggleEditing(_:)))
+        add(UIL("Rotate Left"), #selector(rotateLeft(_:)))
+        add(UIL("Rotate Right"), #selector(rotateRight(_:)))
         return menu
     }
 
@@ -846,24 +849,24 @@ final class PictureViewerController: NSWindowController, NSWindowDelegate, NSToo
                  willBeInsertedIntoToolbar flag: Bool) -> NSToolbarItem? {
         if identifier.rawValue == "search" {
             let item = NSSearchToolbarItem(itemIdentifier: identifier)
-            item.searchField.placeholderString = "Find Text"
+            item.searchField.placeholderString = UIL("Find Text")
             item.searchField.delegate = self
             item.searchField.sendsSearchStringImmediately = true
-            item.label = "Find Text"
-            item.toolTip = "Find text in the picture"
+            item.label = UIL("Find Text")
+            item.toolTip = UIL("Find text in the picture")
             searchField = item.searchField
             return item
         }
         let specs: [String: (String, String, Selector)] = [
-            "previous": ("chevron.left", "Previous", #selector(previous)),
-            "next": ("chevron.right", "Next", #selector(next)),
-            "zoomOut": ("minus.magnifyingglass", "Zoom Out", #selector(zoomOut)),
-            "fit": ("arrow.up.left.and.arrow.down.right", "Fit to Window", #selector(fit)),
-            "zoomIn": ("plus.magnifyingglass", "Zoom In", #selector(zoomIn)),
-            "text": ("text.viewfinder", "Show Text (T)", #selector(toggleText)),
-            "rotate": ("rotate.left", "Rotate Left", #selector(rotateLeft(_:))),
-            "edit": ("pencil.tip.crop.circle", "Edit", #selector(toggleEditing(_:))),
-            "trash": ("trash", "Move to Trash", #selector(trash)),
+            "previous": ("chevron.left", UIL("Previous"), #selector(previous)),
+            "next": ("chevron.right", UIL("Next"), #selector(next)),
+            "zoomOut": ("minus.magnifyingglass", UIL("Zoom Out"), #selector(zoomOut)),
+            "fit": ("arrow.up.left.and.arrow.down.right", UIL("Fit to Window"), #selector(fit)),
+            "zoomIn": ("plus.magnifyingglass", UIL("Zoom In"), #selector(zoomIn)),
+            "text": ("text.viewfinder", UIL("Show Text (T)"), #selector(toggleText)),
+            "rotate": ("rotate.left", UIL("Rotate Left"), #selector(rotateLeft(_:))),
+            "edit": ("pencil.tip.crop.circle", UIL("Edit (button)", value: "Edit"), #selector(toggleEditing(_:))),
+            "trash": ("trash", UIL("Move to Trash"), #selector(trash)),
         ]
         guard let (symbol, label, action) = specs[identifier.rawValue] else { return nil }
         let item = NSToolbarItem(itemIdentifier: identifier)
@@ -915,17 +918,17 @@ private struct ResizeSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Resize Image").font(.headline)
+            Text(UIL("Resize Image")).font(.headline)
             Form {
-                TextField("Width", value: Binding(get: { width }, set: { value in
+                TextField(UIL("Width"), value: Binding(get: { width }, set: { value in
                     width = max(1, value)
                     if keepsProportions { height = max(1, Int((Double(width) * natural.height / natural.width).rounded())) }
                 }), format: .number)
-                TextField("Height", value: Binding(get: { height }, set: { value in
+                TextField(UIL("Height"), value: Binding(get: { height }, set: { value in
                     height = max(1, value)
                     if keepsProportions { width = max(1, Int((Double(height) * natural.width / natural.height).rounded())) }
                 }), format: .number)
-                Toggle("Keep proportions", isOn: $keepsProportions)
+                Toggle(UIL("Keep proportions"), isOn: $keepsProportions)
             }
             HStack {
                 ForEach([25, 50, 75, 100], id: \.self) { percent in
@@ -935,12 +938,12 @@ private struct ResizeSheet: View {
                     }
                 }
             }
-            Text("Original: \(Int(natural.width)) × \(Int(natural.height)) pixels")
+            Text(String(format: UIL("Original: %d × %d pixels"), Int(natural.width), Int(natural.height)))
                 .font(.caption).foregroundStyle(.secondary)
             HStack {
                 Spacer()
-                Button("Cancel") { done(nil) }.keyboardShortcut(.cancelAction)
-                Button("Resize") { done(CGSize(width: width, height: height)) }.keyboardShortcut(.defaultAction)
+                Button(UIL("Cancel")) { done(nil) }.keyboardShortcut(.cancelAction)
+                Button(UIL("Resize")) { done(CGSize(width: width, height: height)) }.keyboardShortcut(.defaultAction)
             }
         }
         .padding(20)
