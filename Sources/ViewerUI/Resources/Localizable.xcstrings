@@ -167,7 +167,7 @@
       "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Fichier" } } }
     },
     "Fill" : {
-      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Remplissage" } } }
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Fond" } } }
     },
     "Filter" : {
       "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Filtre" } } }
@@ -260,7 +260,7 @@
       "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Épaisseur du trait" } } }
     },
     "Merge Down" : {
-      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Fusionner vers le bas" } } }
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Fusionner" } } }
     },
     "Merge Layer Down" : {
       "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Fusionner le calque vers le bas" } } }
@@ -314,7 +314,7 @@
       "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Résultat suivant" } } }
     },
     "No Fill" : {
-      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Sans remplissage" } } }
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Sans fond" } } }
     },
     "No text found in this picture." : {
       "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucun texte trouvé dans cette image." } } }
@@ -557,7 +557,7 @@
       "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Largeur" } } }
     },
     "Width %d" : {
-      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Épaisseur %d" } } }
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Trait %d" } } }
     },
     "Window" : {
       "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Fenêtre" } } }
