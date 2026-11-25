@@ -1,0 +1,111 @@
+# Builds, signs and publishes a release of Viewer when its tag (v<version>) is pushed by
+# scripts/publish.sh, or when sync-version.yml brings the app to a new version of the suite.
+# Everything happens here: the release certificate signs the app, the update key signs update.json,
+# both from this repository's `release` environment, which only this job is given.
+name: Release
+
+on:
+  push:
+    # Development tags (v27.1-dev.12) only mark a version other repositories can depend on.
+    tags: ["v*", "!v*-dev.*"]
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  # Until the release certificate and the update key are in the `release` environment, a tag is only a
+  # tag: nothing is built.
+  check:
+    runs-on: ubuntu-latest
+    environment: release
+    outputs:
+      ready: ${{ steps.secrets.outputs.ready }}
+    steps:
+      - id: secrets
+        env:
+          CERTIFICATE: ${{ secrets.RELEASE_CERTIFICATE }}
+          UPDATE_PRIVATE_KEY: ${{ secrets.UPDATE_PRIVATE_KEY }}
+        run: |
+          if [ -n "$CERTIFICATE" ] && [ -n "$UPDATE_PRIVATE_KEY" ]; then
+              echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+              echo "No release certificate or update key yet: nothing to release."
+          fi
+
+  release:
+    needs: check
+    if: needs.check.outputs.ready == 'true'
+    runs-on: xcode-27
+    environment: release
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          # The build number is the number of commits.
+          fetch-depth: 0
+
+      - name: Select Xcode 27.2
+        run: sudo xcode-select -s /Applications/Xcode_27.2.app
+
+      - name: Import the release certificate
+        env:
+          CERTIFICATE: ${{ secrets.RELEASE_CERTIFICATE }}
+          CERTIFICATE_PASSWORD: ${{ secrets.RELEASE_CERTIFICATE_PASSWORD }}
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/release.keychain-db"
+          PASSWORD="$(uuidgen)"
+          security create-keychain -p "$PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 3600 "$KEYCHAIN"
+          security unlock-keychain -p "$PASSWORD" "$KEYCHAIN"
+          printf %s "$CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/release.p12"
+          security import "$RUNNER_TEMP/release.p12" -k "$KEYCHAIN" -P "$CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          rm "$RUNNER_TEMP/release.p12"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$PASSWORD" "$KEYCHAIN" >/dev/null
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+
+      - name: Build the app
+        run: SIGN_IDENTITY="Suite Release Signing" INSTALL_DIR= scripts/make-app.sh
+
+      - name: Check the signature, sign update.json and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPDATE_PRIVATE_KEY: ${{ secrets.UPDATE_PRIVATE_KEY }}
+        run: |
+          VERSION="${TAG#v}"
+          BUILD="$(git rev-list --count HEAD)"
+          [ "$(cat VERSION)" = "$VERSION" ] || { echo "VERSION says $(cat VERSION), the tag $TAG."; exit 1; }
+          LEAF="$(openssl x509 -inform der -in Support/release-certificate.cer -noout -fingerprint -sha1 | sed 's/.*=//; s/://g')"
+          codesign --verify --deep --strict -R="certificate leaf = H\"$LEAF\"" "build/Viewer.app"
+          ARCHIVE="build/Viewer-$VERSION.zip"
+          ditto -c -k --keepParent "build/Viewer.app" "$ARCHIVE"
+          printf %s "$UPDATE_PRIVATE_KEY" | swift scripts/sign-update.swift "$ARCHIVE" "$VERSION" "$BUILD" "" > build/update.json
+          gh release create "$TAG" "$ARCHIVE" build/update.json --verify-tag --latest \
+              --title "Viewer $VERSION ($BUILD)" --notes "Viewer $VERSION"
+          echo "SHA256=$(shasum -a 256 "$ARCHIVE" | cut -d' ' -f1)" >> "$GITHUB_ENV"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Update the cask
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        if: ${{ env.GH_TOKEN != '' }}
+        run: |
+          CASK="Casks/viewer.rb"
+          FILE="$(gh api "repos/$GITHUB_REPOSITORY_OWNER/homebrew-tap/contents/$CASK" --jq '{sha: .sha, content: .content}')"
+          SHA="$(printf %s "$FILE" | jq -r .sha)"
+          printf %s "$FILE" | jq -r .content | base64 --decode \
+              | sed -E "s/^  version \".*\"/  version \"$VERSION\"/; s/^  sha256 \".*\"/  sha256 \"$SHA256\"/" \
+              | sed -E "s#github\.com/[^/]+/#github.com/$GITHUB_REPOSITORY_OWNER/#g; s#\"[^/\"]+/tap/#\"$GITHUB_REPOSITORY_OWNER/tap/#g" \
+              > "$RUNNER_TEMP/cask.rb"
+          gh api --method PUT "repos/$GITHUB_REPOSITORY_OWNER/homebrew-tap/contents/$CASK" \
+              -f message="viewer $VERSION" -f sha="$SHA" -f content="$(base64 < "$RUNNER_TEMP/cask.rb")" >/dev/null
+
+      - name: Forget the certificate
+        if: always()
+        run: security delete-keychain "$RUNNER_TEMP/release.keychain-db" || true

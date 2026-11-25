@@ -1,0 +1,47 @@
+# Brings this repository to a new version of the suite (AA.Y): the suite repository sends
+# `suite-version` with the version when its SUITE_VERSION changes. VERSION becomes AA.Y, the
+# dependencies on the suite's other repositories move to it, and once it builds and passes its tests the
+# commit is tagged and released.
+name: Sync version
+
+on:
+  repository_dispatch:
+    types: [suite-version]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: xcode-27
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Select Xcode 27.2
+        run: sudo xcode-select -s /Applications/Xcode_27.2.app
+      - name: Move to the suite's version
+        id: tag
+        env:
+          SUITE_VERSION: ${{ github.event.client_payload.version }}
+        run: |
+          echo "$SUITE_VERSION" | grep -Eq '^[0-9]+\.[0-9]+$' || { echo "Not an AA.Y version: $SUITE_VERSION"; exit 1; }
+          echo "$SUITE_VERSION" > VERSION
+          sed -E -i '' "s|(/suite-[a-z-]+\", \.upToNextMinor\(from: \")[0-9.]+|\1$SUITE_VERSION.0|" Package.swift
+          swift package update
+          swift build
+          [ ! -d Tests ] || swift test
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Version $SUITE_VERSION, with the suite"
+          git tag "v$SUITE_VERSION"
+          git push origin HEAD "refs/tags/v$SUITE_VERSION"
+          echo "tag=v$SUITE_VERSION" >> "$GITHUB_OUTPUT"
+  release:
+    needs: sync
+    uses: ./.github/workflows/release.yml
+    with:
+      tag: ${{ needs.sync.outputs.tag }}
+    secrets: inherit

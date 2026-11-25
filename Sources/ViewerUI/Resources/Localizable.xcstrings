@@ -1,0 +1,93 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "About Viewer" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "À propos de Viewer" } } }
+    },
+    "Can't open \"%@\"." : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Impossible d'ouvrir « %@ »." } } }
+    },
+    "Close" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Fermer" } } }
+    },
+    "Edit" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Édition" } } }
+    },
+    "Enter Full Screen" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Activer le mode plein écran" } } }
+    },
+    "File" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Fichier" } } }
+    },
+    "Find" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Rechercher" } } }
+    },
+    "Find in document" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Rechercher dans le document" } } }
+    },
+    "Fit to Window" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Adapter à la fenêtre" } } }
+    },
+    "Go" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aller" } } }
+    },
+    "Hide Viewer" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Masquer Viewer" } } }
+    },
+    "Minimize" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réduire" } } }
+    },
+    "Move to Trash" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Mettre à la corbeille" } } }
+    },
+    "Next" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Suivant" } } }
+    },
+    "Next Page" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Page suivante" } } }
+    },
+    "Next result" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Résultat suivant" } } }
+    },
+    "of" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "sur" } } }
+    },
+    "Open" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ouvrir" } } }
+    },
+    "Open in Preview" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ouvrir dans Aperçu" } } }
+    },
+    "Previous" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Précédent" } } }
+    },
+    "Previous Page" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Page précédente" } } }
+    },
+    "Previous result" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Résultat précédent" } } }
+    },
+    "Quit Viewer" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Quitter Viewer" } } }
+    },
+    "Show Thumbnails" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Afficher les vignettes" } } }
+    },
+    "Thumbnails" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Vignettes" } } }
+    },
+    "View" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Présentation" } } }
+    },
+    "Window" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Fenêtre" } } }
+    },
+    "Zoom In" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Agrandir" } } }
+    },
+    "Zoom Out" : {
+      "localizations" : { "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réduire" } } }
+    }
+  },
+  "version" : "1.0"
+}
